@@ -9,3 +9,9 @@ Features
 -View existing memos
 -Edit memos
 -Delete memos
+
+Acknowledgments
+---------------
+Python
+tkinter
+ttkbootstrap
