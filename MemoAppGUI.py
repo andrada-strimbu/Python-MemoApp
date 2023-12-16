@@ -1,19 +1,12 @@
-import sqlite3
-from logging import root
-from tkinter import *
 import tkinter as tk
 from tkinter import ttk
 from ttkbootstrap import Style
 import ttkbootstrap as tb
-import MemoDatabase
-global combo
+from MemoDatabase import MemoDatabase
+
+
 def load_names_from_database():
-    connection = sqlite3.connect('memo.db')
-    cursor = connection.cursor()
-    cursor.execute('SELECT title FROM MemoDatabase')
-    names = [row[0] for row in cursor.fetchall()]
-    connection.close()
-    return names
+    return memo_database.get_all_titles()
 
 
 def save_memo():
@@ -22,25 +15,38 @@ def save_memo():
 
     print(f"Title: {title}")
     print(f"Note: {note}")
+
+    memo_database.save_memo(title, note)
     combo['values'] = load_names_from_database()
     memo_app_frame.pack(fill=tk.BOTH, expand=True)
     new_memo_frame.pack_forget()
+
 
 def new_memo_button_function():
     combo['values'] = load_names_from_database()
     memo_app_frame.pack_forget()
     new_memo_frame.pack(fill=tk.BOTH, expand=True)
 
+
 def back_button_function():
     combo['values'] = load_names_from_database()
     memo_app_frame.pack(fill=tk.BOTH, expand=True)
     new_memo_frame.pack_forget()
+
+
 def view_note_function(title):
-     print(title)
+    print(f"Viewing note for title: {title}")
+    # Fetch the memo content from the database using the selected title
+    memo_data = memo_database.load_memo_by_title(title)
+    if memo_data:
+        print(f"Title: {memo_data[1]}\nNote: {memo_data[2]}")
+
+
 def click_bind(event):
     selected_title = combo.get()
-    print(f"Selected Name: {selected_title}")
+    print(f"Selected Title: {selected_title}")
     view_note_function(selected_title)
+
 
 root = tk.Tk()
 root.title("Memo App")
@@ -49,6 +55,7 @@ style = Style(theme='minty')
 style = ttk.Style()
 
 # Memo App
+memo_database = MemoDatabase()  # Create an instance of the MemoDatabase class
 
 memo_app_frame = tk.Frame(root)
 
@@ -66,8 +73,6 @@ my_label.grid(row=1, column=1, pady=50)
 combo = ttk.Combobox(memo_app_frame, font=("Helvetica", 15), bootstyle="primary")
 combo.grid(row=2, column=1, pady=20, sticky="new")
 combo.bind("<<ComboboxSelected>>", click_bind)
-
-
 
 my_style = tb.Style()
 my_style.configure('primary.TButton', font=("Helvetica", 15))
@@ -113,9 +118,9 @@ back_button.grid(row=0, column=0, columnspan=2, pady=10, sticky="nw")
 new_memo_frame.pack(fill=tk.BOTH, expand=True)
 
 
-def main():
 
-    combo['values'] = load_names_from_database()
+def main():
+    combo['values'] = memo_database.get_all_titles()
     memo_app_frame.pack(fill=tk.BOTH, expand=True)
     new_memo_frame.pack_forget()
     root.mainloop()

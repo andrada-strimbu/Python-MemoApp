@@ -1,7 +1,7 @@
 import sqlite3
 from datetime import datetime
 
-class Database:
+class MemoDatabase:
     def __init__(self, db_file='memo.db'):
         self.db_file = db_file
         self.conn = sqlite3.connect(self.db_file)
@@ -42,3 +42,8 @@ class Database:
         self.cursor.execute("SELECT * FROM MemoDatabase WHERE title=?", (title,))
         result = self.cursor.fetchone()
         return result if result else None
+    def get_all_titles(self):
+        self.cursor.execute("SELECT title FROM MemoDatabase")
+        result= self.cursor.fetchall()
+        return result if result else None
+
