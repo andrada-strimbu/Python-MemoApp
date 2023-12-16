@@ -182,7 +182,7 @@ edit_button = ttk.Button(view_memo_frame, text="Edit>", bootstyle="primary, link
                          command=lambda: edit_button_function(view_title_label.cget("text")))
 edit_button.grid(row=0, column=3, columnspan=2, pady=10, sticky="ne")
 
-view_date_label = ttk.Label(view_memo_frame, text="", font=("Helvetica", 5), bootstyle="secondary")
+view_date_label = ttk.Label(view_memo_frame, text="", font=("Helvetica", 7), bootstyle="secondary")
 view_date_label.grid(row=1, column=3, padx=10, pady=10, sticky="ne")
 
 # EDIT FRAME
