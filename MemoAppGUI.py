@@ -1,52 +1,102 @@
+import sqlite3
 from tkinter import *
 import tkinter as tk
-from tkinter import ttk, messagebox
-from ttkbootstrap.constants import *
-import  ttkbootstrap as tb
+from tkinter import ttk
 from ttkbootstrap import Style
+import ttkbootstrap as tb
+
+
+def load_names_from_database():
+    connection = sqlite3.connect('memo.db')
+    cursor = connection.cursor()
+    cursor.execute('SELECT title FROM MemoDatabase')
+    names = [row[0] for row in cursor.fetchall()]
+    connection.close()
+    return names
+
+
+def save_memo():
+    title = title_entry.get()
+    note = note_entry.get("1.0", "end-1c")
+
+    print(f"Title: {title}")
+    print(f"Note: {note}")
+
 
 def new_memo_function():
-    new_memo = tk.Tk()
-    new_memo.title("Notes App")
-    new_memo.geometry("500x500")
+    global title_entry, note_entry
+    root = tk.Toplevel()
+    root.title("Add Memo")
+    root.geometry("500x500")
+    style = Style(theme='minty')
+
+    new_memo_frame = ttk.Frame(root, padding=10)
+    new_memo_frame.pack(fill=tk.BOTH, expand=True)
+
+    new_memo_frame.rowconfigure(0, weight=1)
+    new_memo_frame.rowconfigure(1, weight=1)
+    new_memo_frame.rowconfigure(2, weight=2)
+    new_memo_frame.rowconfigure(3, weight=1)
+    new_memo_frame.rowconfigure(4, weight=1)
+    new_memo_frame.columnconfigure(0, weight=1)
+
+    # Etichetă pentru titlu
+    title_label = ttk.Label(new_memo_frame, text="Titlu:", font=("Helvetica", 15), bootstyle="secondary")
+    title_label.grid(row=1, column=0, padx=10, pady=10, sticky="W")
+
+    # Câmp de intrare pentru titlu
+    title_entry = ttk.Entry(new_memo_frame, width=60)
+    title_entry.grid(row=1, column=1, padx=10, pady=10, sticky="w")
+
+    # Etichetă pentru notă
+    note_label = ttk.Label(new_memo_frame, text="Notă:", font=("Helvetica", 15), bootstyle="secondary")
+    note_label.grid(row=2, column=0, padx=10, pady=10, sticky="nw")
+
+    # Câmp de intrare pentru notă
+    note_entry = tk.Text(new_memo_frame, width=60, height=10)
+    note_entry.grid(row=2, column=1, padx=10, pady=10, sticky="ns")
+
+    my_style = tb.Style()
+    my_style.configure('primary.TButton', font=("Helvetica", 15))
+    save_button = ttk.Button(new_memo_frame, text=" Save ", command=save_memo, style="primary.TButton")
+    save_button.grid(row=3, column=0, columnspan=2, pady=20)
+
+    back_button = ttk.Button(new_memo_frame, text="<Back", bootstyle="primary, link")
+    back_button.grid(row=0, column=0, columnspan=2, pady=10, sticky="nw")
+
+
+def main():
+    root = tk.Tk()
+    root.title("Memo App")
+    root.geometry("500x500")
     style = Style(theme='minty')
     style = ttk.Style()
+    root.columnconfigure(0, weight=1)
+    root.columnconfigure(1, weight=3)
+    root.columnconfigure(2, weight=1)
+    root.rowconfigure(0, weight=1)
+    root.rowconfigure(1, weight=3)
+    root.rowconfigure(2, weight=2)
+    root.rowconfigure(3, weight=1)
 
-    style.configure("TNotebook.Tab", font=("TkDefaultFont", 14, "bold"))
+    my_label = tb.Label(root, text="Memo App", font=("Helvetica", 40), bootstyle="secondary")
+    my_label.grid(row=1, column=1, pady=50)
 
-    notebook = ttk.Notebook(new_memo, style="TNotebook")
-    notebook = ttk.Notebook(new_memo)
+    combo = ttk.Combobox(root, values=load_names_from_database(), font=("Helvetica", 15), bootstyle="primary")
+    combo.grid(row=2, column=1, pady=20, sticky="new")
 
-    notebook.pack(padx=10, pady=10, fill=tk.BOTH, expand=True)
-    note_frame = ttk.Frame(notebook, padding=10)
-    notebook.add(note_frame, text="New Note")
-    # Create entry widgets for the title and content of the note
-    title_label = ttk.Label(note_frame, text="Title:")
-    title_label.grid(row=0, column=0, padx=10, pady=10, sticky="W")
+    my_style = tb.Style()
+    my_style.configure('primary.TButton', font=("Helvetica", 15))
+    new_memo_button = ttk.Button(root, text="New memo", command=new_memo_function, style="primary.TButton")
+    new_memo_button.grid(row=2, column=1, pady=20, sticky="sew")
 
-    title_entry = ttk.Entry(note_frame, width=40)
-    title_entry.grid(row=0, column=1, padx=10, pady=10)
+    def on_combobox_select(event):
+        selected_name = combo.get()
+        print(f"Selected Name: {selected_name}")
 
-    content_label = ttk.Label(note_frame, text="Content:")
-    content_label.grid(row=1, column=0, padx=10, pady=10, sticky="W")
+    combo.bind("<<ComboboxSelected>>", on_combobox_select)
 
-    content_entry = tk.Text(note_frame, width=40, height=10)
-    content_entry.grid(row=1, column=1, padx=10, pady=10)
-
-
-root = tk.Tk()
-root.title("Memo App")
-root.geometry("500x500")
-style = Style(theme='minty')
-style = ttk.Style()
-
-my_label=tb.Label(text="Memo App", font=("Helvetica",30), bootstyle="secondary")
-my_label.pack(pady=50)
-new_memo_button=tb.Button(text="New memo", bootstyle="primary", command=new_memo_function)
-new_memo_button.pack(pady=20)
-
-notebook = ttk.Notebook(root)
-notebook.pack(padx=10, pady=10, fill=tk.BOTH, expand=True)
+    root.mainloop()
 
 
-root.mainloop()
+main()
