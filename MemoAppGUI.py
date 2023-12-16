@@ -37,6 +37,7 @@ def remove_function(title):
     memo_database.delete_memo_by_title(title)
     back_button_function()
 
+
 def new_memo_button_function():
     combo_update()
     memo_app_frame.pack_forget()
@@ -44,12 +45,14 @@ def new_memo_button_function():
     edit_memo_frame.pack_forget()
     new_memo_frame.pack(fill=tk.BOTH, expand=True)
 
+
 def back_button_function():
     combo_update()
     memo_app_frame.pack(fill=tk.BOTH, expand=True)
     new_memo_frame.pack_forget()
     view_memo_frame.pack_forget()
     edit_memo_frame.pack_forget()
+
 
 def view_note_function(title):
     memo_data = memo_database.load_memo_by_title(title)
@@ -60,10 +63,12 @@ def view_note_function(title):
         memo_app_frame.pack_forget()
         view_memo_frame.pack(fill=tk.BOTH, expand=True)
 
+
 def click_bind(event):
     selected_title = combo.get()
     print(f"Selected Title: {selected_title}")
     view_note_function(selected_title)
+
 
 def edit_button_function(title):
     memo_app_frame.pack_forget()
@@ -78,6 +83,7 @@ def edit_button_function(title):
 
         edit_memo_frame.pack(fill=tk.BOTH, expand=True)
 
+
 def update_function(title):
     title = edit_title_label.cget("text")
     note = note_edit.get("1.0", tk.END)
@@ -90,7 +96,8 @@ def update_function(title):
     view_memo_frame.pack_forget()
     edit_memo_frame.pack_forget()
 
-#GUI
+
+# GUI
 root = tk.Tk()
 root.title("Memo App")
 root.geometry("500x500")
@@ -217,6 +224,7 @@ back_button_edit = ttk.Button(edit_memo_frame, text="<Back", bootstyle="secondar
 back_button_edit.grid(row=0, column=0, columnspan=2, pady=10, sticky="nw")
 
 edit_memo_frame.pack(fill=tk.BOTH, expand=True)
+
 
 def main():
     combo_update()
