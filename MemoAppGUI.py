@@ -5,7 +5,7 @@ import tkinter as tk
 from tkinter import ttk
 from ttkbootstrap import Style
 import ttkbootstrap as tb
-
+import MemoDatabase
 global combo
 def load_names_from_database():
     connection = sqlite3.connect('memo.db')
@@ -26,14 +26,6 @@ def save_memo():
     memo_app_frame.pack(fill=tk.BOTH, expand=True)
     new_memo_frame.pack_forget()
 
-
-def on_combobox_select(event):
-    global combo
-    print(f"am intrat in on_combo")
-    selected_name = combo.get()
-    print(f"Selected Name: {selected_name}")
-
-
 def new_memo_button_function():
     combo['values'] = load_names_from_database()
     memo_app_frame.pack_forget()
@@ -43,6 +35,12 @@ def back_button_function():
     combo['values'] = load_names_from_database()
     memo_app_frame.pack(fill=tk.BOTH, expand=True)
     new_memo_frame.pack_forget()
+def view_note_function(title):
+     print(title)
+def click_bind(event):
+    selected_title = combo.get()
+    print(f"Selected Name: {selected_title}")
+    view_note_function(selected_title)
 
 root = tk.Tk()
 root.title("Memo App")
@@ -67,7 +65,7 @@ my_label.grid(row=1, column=1, pady=50)
 
 combo = ttk.Combobox(memo_app_frame, font=("Helvetica", 15), bootstyle="primary")
 combo.grid(row=2, column=1, pady=20, sticky="new")
-combo.bind("<<ComboboxSelected>>", lambda event: print(f"Selected Name: {combo.get()}"))
+combo.bind("<<ComboboxSelected>>", click_bind)
 
 
 
@@ -116,6 +114,7 @@ new_memo_frame.pack(fill=tk.BOTH, expand=True)
 
 
 def main():
+
     combo['values'] = load_names_from_database()
     memo_app_frame.pack(fill=tk.BOTH, expand=True)
     new_memo_frame.pack_forget()
