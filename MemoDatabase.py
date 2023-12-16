@@ -24,10 +24,10 @@ class MemoDatabase:
         self.cursor.execute("DELETE FROM MemoDatabase WHERE title=?", (title,))
         self.conn.commit()
 
-    def update_memo(self, memo_id, title, note):
-        current_date = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        self.cursor.execute("UPDATE MemoDatabase SET title=?, note=?, date=? WHERE id=?",
-                            (title, note, current_date, memo_id))
+    def update_memo(self, title, note):
+        date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        self.cursor.execute("UPDATE MemoDatabase SET  note=?, date=? WHERE title=?",
+                            (note, date, title))
         self.conn.commit()
 
     def close_connection(self):
@@ -46,4 +46,14 @@ class MemoDatabase:
         self.cursor.execute("SELECT title FROM MemoDatabase")
         result= self.cursor.fetchall()
         return result if result else None
+
+    def memo_exists(self, title):
+        # Verifică dacă un memo cu același titlu există în baza de date
+        self.cursor.execute("""
+               SELECT * FROM MemoDatabase WHERE title = ?
+           """, (title,)
+                            )
+        return self.cursor.fetchone() is not None
+
+
 

@@ -4,42 +4,64 @@ from ttkbootstrap import Style
 import ttkbootstrap as tb
 from MemoDatabase import MemoDatabase
 
+from tkinter import messagebox
 
-def load_names_from_database():
-    return memo_database.get_all_titles()
+
+def combo_update():
+    titles = memo_database.get_all_titles()
+    formatted_titles = [title[0] if isinstance(title, tuple) else title for title in titles]
+    combo['values'] = formatted_titles
 
 
 def save_memo():
-    title = title_entry.get()
+    title = title_entry.get("1.0", tk.END).strip()
     note = note_entry.get("1.0", "end-1c")
 
-    print(f"Title: {title}")
-    print(f"Note: {note}")
+    if memo_database.memo_exists(title):
+        error_message = f"Titlul '{title}' există deja. Alegeți un alt titlu."
+        print(error_message)
+        messagebox.showerror("Eroare", error_message)
+    else:
+        print(f"Title: {title}")
+        print(f"Note: {note}")
+        memo_database.save_memo(title, note)
+        combo_update()
+        memo_app_frame.pack(fill=tk.BOTH, expand=True)
+        new_memo_frame.pack_forget()
+        view_memo_frame.pack_forget()
+        edit_memo_frame.pack_forget()
 
-    memo_database.save_memo(title, note)
-    combo['values'] = load_names_from_database()
-    memo_app_frame.pack(fill=tk.BOTH, expand=True)
-    new_memo_frame.pack_forget()
+
+def remove_function(title):
+    memo_database.delete_memo_by_title(title)
+    back_button_function()
+
 
 
 def new_memo_button_function():
-    combo['values'] = load_names_from_database()
+    combo_update()
     memo_app_frame.pack_forget()
+    view_memo_frame.pack_forget()
+    edit_memo_frame.pack_forget()
     new_memo_frame.pack(fill=tk.BOTH, expand=True)
 
 
 def back_button_function():
-    combo['values'] = load_names_from_database()
+    combo_update()
     memo_app_frame.pack(fill=tk.BOTH, expand=True)
     new_memo_frame.pack_forget()
+    view_memo_frame.pack_forget()
+    edit_memo_frame.pack_forget()
 
 
 def view_note_function(title):
-    print(f"Viewing note for title: {title}")
-    # Fetch the memo content from the database using the selected title
     memo_data = memo_database.load_memo_by_title(title)
     if memo_data:
-        print(f"Title: {memo_data[1]}\nNote: {memo_data[2]}")
+        view_title_label.config(text=memo_data[1])
+        view_note_label.config(text=memo_data[2])
+        view_date_label.config(text=memo_data[3])
+        memo_app_frame.pack_forget()
+        view_memo_frame.pack(fill=tk.BOTH, expand=True)
 
 
 def click_bind(event):
@@ -48,17 +70,44 @@ def click_bind(event):
     view_note_function(selected_title)
 
 
+def edit_button_function(title):
+    memo_app_frame.pack_forget()
+    new_memo_frame.pack_forget()
+    view_memo_frame.pack_forget()
+    print(title)
+    memo_data = memo_database.load_memo_by_title(title)
+    if memo_data:
+        edit_title_label.config(text=title)
+        note_edit.delete(1.0, tk.END)
+        note_edit.insert(tk.END, memo_data[2])
+
+        edit_memo_frame.pack(fill=tk.BOTH, expand=True)
+
+
+def update_function(title):
+    title = edit_title_label.cget("text")
+    note = note_edit.get("1.0", tk.END)
+
+    print(f"Updated Title: {title}")
+    print(f"Updated Note: {note}")
+
+    memo_database.update_memo(title, note)
+    combo_update()
+    memo_app_frame.pack(fill=tk.BOTH, expand=True)
+    new_memo_frame.pack_forget()
+    view_memo_frame.pack_forget()
+    edit_memo_frame.pack_forget()
+
+
 root = tk.Tk()
 root.title("Memo App")
 root.geometry("500x500")
 style = Style(theme='minty')
 style = ttk.Style()
+memo_database = MemoDatabase()
 
 # Memo App
-memo_database = MemoDatabase()  # Create an instance of the MemoDatabase class
-
 memo_app_frame = tk.Frame(root)
-
 memo_app_frame.columnconfigure(0, weight=1)
 memo_app_frame.columnconfigure(1, weight=3)
 memo_app_frame.columnconfigure(2, weight=1)
@@ -96,7 +145,7 @@ title_label = ttk.Label(new_memo_frame, text="Titlu:", font=("Helvetica", 15), b
 title_label.grid(row=1, column=0, padx=10, pady=10, sticky="W")
 
 # Câmp de intrare pentru titlu
-title_entry = ttk.Entry(new_memo_frame, width=60)
+title_entry = tk.Text(new_memo_frame, width=60, height=1)
 title_entry.grid(row=1, column=1, padx=10, pady=10, sticky="w")
 
 # Etichetă pentru notă
@@ -116,13 +165,75 @@ back_button = ttk.Button(new_memo_frame, text="<Back", bootstyle="primary, link"
 back_button.grid(row=0, column=0, columnspan=2, pady=10, sticky="nw")
 
 new_memo_frame.pack(fill=tk.BOTH, expand=True)
+# VIEW FRAME
+view_memo_frame = ttk.Frame(root, padding=10)
+view_memo_frame.columnconfigure(0, weight=1)
+view_memo_frame.columnconfigure(1, weight=2)
+view_memo_frame.columnconfigure(2, weight=1)
+view_memo_frame.rowconfigure(0, weight=1)
+view_memo_frame.rowconfigure(1, weight=1)
+view_memo_frame.rowconfigure(2, weight=5)
 
+back_button_view = ttk.Button(view_memo_frame, text="<Back", bootstyle="primary, link", command=back_button_function)
+back_button_view.grid(row=0, column=0, columnspan=2, pady=10, sticky="nw")
+
+view_title_label = ttk.Label(view_memo_frame, text="", font=("Helvetica", 30), bootstyle="secondary")
+view_title_label.grid(row=1, column=1, padx=10, pady=10)
+
+remove_button = ttk.Button(view_memo_frame, text="Remove", bootstyle="secondary, link",
+                           command=lambda: remove_function(view_title_label.cget("text")))
+remove_button.grid(row=0, column=1, pady=10, sticky="n")
+
+view_note_label = ttk.Label(view_memo_frame, text="", font=("Helvetica", 15), bootstyle="secondary")
+view_note_label.grid(row=2, column=1, padx=10, pady=10, sticky="nw")
+
+edit_button = ttk.Button(view_memo_frame, text="Edit>", bootstyle="primary, link",
+                         command=lambda: edit_button_function(view_title_label.cget("text")))
+edit_button.grid(row=0, column=3, columnspan=2, pady=10, sticky="ne")
+
+view_date_label = ttk.Label(view_memo_frame, text="", font=("Helvetica", 5), bootstyle="secondary")
+view_date_label.grid(row=1, column=3, padx=10, pady=10, sticky="ne")
+
+# EDIT FRAME
+edit_memo_frame = ttk.Frame(root, padding=10)
+edit_memo_frame.rowconfigure(0, weight=1)
+edit_memo_frame.rowconfigure(1, weight=1)
+edit_memo_frame.rowconfigure(2, weight=2)
+edit_memo_frame.rowconfigure(3, weight=1)
+edit_memo_frame.rowconfigure(4, weight=1)
+edit_memo_frame.columnconfigure(0, weight=1)
+
+# Etichetă pentru titlu
+edit_title_label = ttk.Label(edit_memo_frame, text="", font=("Helvetica", 30), bootstyle="secondary")
+edit_title_label.grid(row=1, column=1, padx=10, pady=10)
+
+# Etichetă pentru notă
+edit_note_label = ttk.Label(edit_memo_frame, text="Notă:", font=("Helvetica", 15), bootstyle="primary")
+edit_note_label.grid(row=2, column=0, padx=10, pady=10, sticky="nw")
+
+# Câmp de intrare pentru notă
+note_edit = tk.Text(edit_memo_frame, width=60, height=10)
+note_edit.grid(row=2, column=1, padx=10, pady=10, sticky="ns")
+
+my_style = tb.Style()
+my_style.configure('secondary.TButton', font=("Helvetica", 15))
+save_edit = ttk.Button(edit_memo_frame, text=" Save changes ",
+                       command=lambda: update_function(view_title_label.cget("text")),
+                       style="secondary.TButton")
+save_edit.grid(row=3, column=0, columnspan=2, pady=20)
+
+back_button_edit = ttk.Button(edit_memo_frame, text="<Back", bootstyle="secondary, link", command=back_button_function)
+back_button_edit.grid(row=0, column=0, columnspan=2, pady=10, sticky="nw")
+
+edit_memo_frame.pack(fill=tk.BOTH, expand=True)
 
 
 def main():
-    combo['values'] = memo_database.get_all_titles()
+    combo_update()
     memo_app_frame.pack(fill=tk.BOTH, expand=True)
     new_memo_frame.pack_forget()
+    edit_memo_frame.pack_forget()
+    view_memo_frame.pack_forget()
     root.mainloop()
 
 
